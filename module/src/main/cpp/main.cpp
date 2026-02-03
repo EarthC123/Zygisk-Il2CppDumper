@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <cinttypes>
+#include <fstream>
 #include "hack.h"
 #include "zygisk.hpp"
 #include "game.h"
