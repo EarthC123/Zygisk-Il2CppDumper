@@ -46,14 +46,46 @@ private:
     void *data;
     size_t length;
 
+    static bool module_dir_realpath_from_fd(int dirfd, std::string& out_dir) {
+        char linkpath[64];
+        snprintf(linkpath, sizeof(linkpath), "/proc/self/fd/%d", dirfd);
+
+        char realdir[PATH_MAX] = {0};
+        ssize_t n = readlink(linkpath, realdir, sizeof(realdir) - 1);
+        if (n < 0) {
+            LOGE("[IL2CPPDUMPER]: readlink(%s) failed: %s (errno=%d)", linkpath, strerror(errno), errno);
+            return false;
+        }
+        realdir[n] = '\0';
+        out_dir.assign(realdir);
+        return true;
+    }
+
     bool is_target_game(const char *current_process) {
-        std::ifstream cfg("/data/local/tmp/il2cpp.cfg");
-        if (!cfg.is_open()) return false;
+        int dirfd = api->getModuleDir();
+        if (dirfd < 0) { LOGE("[IL2CPPDUMPER]:getModuleDir failed"); return false; }
+
+        std::string dirpath;
+        if (!module_dir_realpath_from_fd(dirfd, dirpath)) { return false; }
+
+        std::string cfg_path = dirpath + "/il2cpp.cfg";
+
+        std::ifstream cfg(cfg_path);
+        if (!cfg.is_open())
+        {
+            LOGI("[IL2CPPDUMPER]:open fail, path:%s, %s (errno=%d)", cfg_path.c_str(), strerror(errno), errno);
+            return false;
+        }
         std::string target;
         if (std::getline(cfg, target)) {
             target.erase(0, target.find_first_not_of(" \n\r\t"));
             target.erase(target.find_last_not_of(" \n\r\t") + 1);
+            LOGI("[IL2CPPDUMPER]:CurrentName: %s, TargetName: %s, isEqual:%d", current_process, target.c_str(), target == current_process);
             return target == current_process;
+        }
+        else
+        {
+            LOGI("[IL2CPPDUMPER]:getline error");
         }
         return false;
     }
