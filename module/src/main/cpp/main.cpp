@@ -45,8 +45,20 @@ private:
     void *data;
     size_t length;
 
+    bool is_target_game(const char *current_process) {
+        std::ifstream cfg("/data/local/tmp/il2cpp.cfg");
+        if (!cfg.is_open()) return false;
+        std::string target;
+        if (std::getline(cfg, target)) {
+            target.erase(0, target.find_first_not_of(" \n\r\t"));
+            target.erase(target.find_last_not_of(" \n\r\t") + 1);
+            return target == current_process;
+        }
+        return false;
+    }
+
     void preSpecialize(const char *package_name, const char *app_data_dir) {
-        if (strcmp(package_name, GamePackageName) == 0) {
+        if (package_name && is_target_game(package_name)) {
             LOGI("detect game: %s", package_name);
             enable_hack = true;
             game_data_dir = new char[strlen(app_data_dir) + 1];
