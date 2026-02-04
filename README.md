@@ -1,6 +1,10 @@
 # Zygisk-Il2CppDumper
 Il2CppDumper with Zygisk, dump il2cpp data at runtime, can bypass protection, encryption and obfuscation.
 
+# Modified By Jone
+Using file to dynamic adjust the game package ID, No need to precompiled.
+Path is in /data/adb/modules/zygisk_il2cppdumper/il2cpp.cfg
+
 中文说明请戳[这里](README.zh-CN.md)
 
 ## How to use
